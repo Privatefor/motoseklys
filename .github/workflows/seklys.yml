@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Siusti testine zinute
+      - name: Test
         run: |
-          curl -s -X POST \
-          "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
-          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-          -d text="✅ TESTAS: GitHub sėkmingai siunčia žinutes į Telegram!"
+          curl -X POST \
+          "https://api.telegram.org/bot8947745976:AAFcrmvT4en1A3zJZBcMjgcbsfYklyELu4U/sendMessage" \
+          -d chat_id="1778604935" \
+          -d text="✅ TEST tiesiogiai be GitHub Secret"
