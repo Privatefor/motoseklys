@@ -58,25 +58,25 @@ jobs:
               with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                   f.write("found=false\n")
 
-      - name: G-TESTAS (Bando siusti i abu pavadinimus)
+      - name: G-TESTAS (Zinute i asmenini pokalbi ir kanala)
         run: |
-          # 1 variantas: su didžiosiomis raidėmis
+          # Žinutė asmeniškai jums
           curl -s -X POST "https://telegram.org" \
-          -d "chat_id=@ManoMotociklas" \
-          -d "text=🧪 G-TESTAS: Sekimas sėkmingai paleistas (Didžiosios raidės)!"
+          -d "chat_id=1778604935" \
+          -d "text=🧪 G-TESTAS: Teisingas tokenas įvestas! Ryšys su jūsų asmeniniu pokalbiu veikia."
           
-          # 2 variantas: su mažosiomis raidėmis
+          # Žinutė į jūsų viešą kanalą
           curl -s -X POST "https://telegram.org" \
           -d "chat_id=@manomotociklas" \
-          -d "text=🧪 G-TESTAS: Sekimas sėkmingai paleistas (Mažosios raidės)!"
+          -d "text=🧪 G-TESTAS: Ryšys su jūsų Telegram kanalu užmegztas sėkmingai!"
 
       - name: Siusti pranesima jei atsirado konteineris
         if: steps.tracker.outputs.found == 'true'
         run: |
           curl -s -X POST "https://telegram.org" \
-          -d "chat_id=@manomotociklas" \
+          -d "chat_id=1778604935" \
           -d "text=🔔 ATRADOME KONTEINERIO NR! Numeris: ${{ steps.tracker.outputs.val }}. Nuoroda: https://shipbaltic.com"
           
           curl -s -X POST "https://telegram.org" \
-          -d "chat_id=@ManoMotociklas" \
+          -d "chat_id=@manomotociklas" \
           -d "text=🔔 ATRADOME KONTEINERIO NR! Numeris: ${{ steps.tracker.outputs.val }}. Nuoroda: https://shipbaltic.com"
