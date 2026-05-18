@@ -1,0 +1,70 @@
+name: Motociklo sekimas
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  run-tracker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Atsisiusti koda
+        uses: actions/checkout@v4
+
+      - name: Paruosti Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Idiegti bibliotekas
+        run: pip install requests beautifulsoup4
+
+      - name: Paleisti sekimo skripta
+        shell: python
+        run: |
+          import requests
+          from bs4 import BeautifulSoup
+
+          TELEGRAM_TOKEN = "8947745976:AAFcrmvT4en1A3zJZBcMjg_cbsfYklyELu4U"
+          TELEGRAM_CHAT_ID = "1778604935"
+          URL = "https://shipbaltic.com"
+
+          def send_telegram(message):
+              url = f"https://telegram.org{TELEGRAM_TOKEN}/sendMessage"
+              payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"}
+              try:
+                  requests.post(url, json=payload, timeout=10)
+              except Exception as e:
+                  print(f"Nepavyko išsiųsti Telegram žinutės: {e}")
+
+          def check_container():
+              headers = {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+              }
+              try:
+                  response = requests.get(URL, headers=headers, timeout=15)
+                  if response.status_code != 200:
+                      print(f"Klaida: puslapis grazino koda {response.status_code}")
+                      return
+
+                  soup = BeautifulSoup(response.text, 'html.parser')
+                  rows = soup.find_all('tr')
+                  for row in rows:
+                      cells = row.find_all(['td', 'th'])
+                      if len(cells) >= 2:
+                          title = cells[0].text.strip()
+                          value = cells[1].text.strip()
+                          
+                          if "Container number" in title:
+                              if value and value != "-":
+                                  msg = f"🔔 *ATRADOME KONTEINERIO NR!*\n\n📍 *Numeris:* `{value}`\n🏍 *Nuoroda:* [ShipBaltic]({URL})"
+                                  send_telegram(msg)
+                                  print("Konteinerio numeris rastas!")
+                                  return
+                                  
+                  print("Konteinerio numerio dar nera. Laukiame...")
+              except Exception as e:
+                  print(f"Klaida: {e}")
+
+          check_container()
