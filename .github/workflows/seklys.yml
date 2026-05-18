@@ -42,14 +42,13 @@ jobs:
               for row in rows:
                   cells = row.find_all(['td', 'th'])
                   if len(cells) >= 2:
-                      title = cells[0].text.strip()
-                      value = cells[1].text.strip()
+                      title = cells.text.strip()
+                      value = cells.text.strip()
                       if "Container number" in title and value and value != "-":
                           container_found = "true"
                           container_val = value
                           break
                           
-              # Isaugome rezultatus i Github aplinka
               with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                   f.write(f"found={container_found}\n")
                   f.write(f"val={container_val}\n")
@@ -59,15 +58,15 @@ jobs:
               with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                   f.write("found=false\n")
 
-      - name: G-TESTAS (Atsius žinutę dabar patikrinimui)
+      - name: G-TESTAS (Zinute i viesu kanala)
         run: |
           curl -s -X POST "https://telegram.org" \
-          -d "chat_id=1778604935" \
-          -d "text=🧪 G-TESTAS: Ryšys su robotuku sėkmingai užmegztas! Sekimas veikia fone."
+          -d "chat_id=@manomotociklas" \
+          -d "text=🧪 G-TESTAS: Sekimas sėkmingai paleistas viešame kanale!"
 
-      - name: Siusti pranesima jei atsirado konteineris
+      - name: Siusti pranesima i kanala jei atsirado konteineris
         if: steps.tracker.outputs.found == 'true'
         run: |
           curl -s -X POST "https://telegram.org" \
-          -d "chat_id=1778604935" \
+          -d "chat_id=@manomotociklas" \
           -d "text=🔔 ATRADOME KONTEINERIO NR! Numeris: ${{ steps.tracker.outputs.val }}. Nuoroda: https://shipbaltic.com"
