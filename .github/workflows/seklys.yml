@@ -31,12 +31,14 @@ jobs:
           URL = "https://shipbaltic.com"
 
           def send_telegram(message):
-              url = f"https://telegram.org{TELEGRAM_TOKEN}/sendMessage"
-              payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"}
+              url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+              # Pašalintas Markdown formatas, kad nekiltų jokių klaidų sistemoje
+              payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message}
               try:
-                  requests.post(url, json=payload, timeout=10)
+                  response = requests.post(url, json=payload, timeout=10)
+                  print(f"Telegram serverio atsakymas: {response.status_code} - {response.text}")
               except Exception as e:
-                  print(f"Nepavyko išsiųsti Telegram žinutės: {e}")
+                  print(f"Nepavyko išsiųsti žinutės: {e}")
 
           def check_container():
               headers = {
@@ -53,22 +55,19 @@ jobs:
                   for row in rows:
                       cells = row.find_all(['td', 'th'])
                       if len(cells) >= 2:
-                          title = cells[0].text.strip()
-                          value = cells[1].text.strip()
+                          title = cells.text.strip()
+                          value = cells.text.strip()
                           
                           if "Container number" in title:
                               if value and value != "-":
-                                  msg = f"🔔 *ATRADOME KONTEINERIO NR!*\n\n📍 *Numeris:* `{value}`\n🏍 *Nuoroda:* [ShipBaltic]({URL})"
+                                  msg = f"ATRADOME KONTEINERIO NR! Numeris: {value}. Nuoroda: {URL}"
                                   send_telegram(msg)
-                                  print("Konteinerio numeris rastas!")
                                   return
                                   
                   print("Konteinerio numerio dar nera. Laukiame...")
               except Exception as e:
                   print(f"Klaida: {e}")
 
-          # TESTINĖ ŽINUTĖ: išsiunčia pranešimą kaskart paleidus skriptą
-          send_telegram("🧪 *G-TEST:* Ryšys su GitHub veikia puikiai! Konteinerio numerio sekimas aktyvuotas.")
-
-          # Pagrindinis puslapio tikrinimas
+          # TESTAS: Paprastas tekstas be jokio Markdown
+          send_telegram("TESTAS: Robotukas veikia ir sekimas pradetas sėkmingai!")
           check_container()
