@@ -20,54 +20,54 @@ jobs:
       - name: Idiegti bibliotekas
         run: pip install requests beautifulsoup4
 
-      - name: Paleisti sekimo skripta
+      - name: Patikrinti puslapi ir rasti konteineri
+        id: tracker
         shell: python
         run: |
           import requests
           from bs4 import BeautifulSoup
+          import os
 
-          TELEGRAM_TOKEN = "8947745976:AAFcrmvT4en1A3zJZBcMjg_cbsfYklyELu4U"
-          TELEGRAM_CHAT_ID = "1778604935"
           URL = "https://shipbaltic.com"
-
-          def send_telegram(message):
-              url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-              # Pašalintas Markdown formatas, kad nekiltų jokių klaidų sistemoje
-              payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message}
-              try:
-                  response = requests.post(url, json=payload, timeout=10)
-                  print(f"Telegram serverio atsakymas: {response.status_code} - {response.text}")
-              except Exception as e:
-                  print(f"Nepavyko išsiųsti žinutės: {e}")
-
-          def check_container():
-              headers = {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-              }
-              try:
-                  response = requests.get(URL, headers=headers, timeout=15)
-                  if response.status_code != 200:
-                      print(f"Klaida: puslapis grazino koda {response.status_code}")
-                      return
-
-                  soup = BeautifulSoup(response.text, 'html.parser')
-                  rows = soup.find_all('tr')
-                  for row in rows:
-                      cells = row.find_all(['td', 'th'])
-                      if len(cells) >= 2:
-                          title = cells.text.strip()
-                          value = cells.text.strip()
+          headers = {'User-Agent': 'Mozilla/5.0'}
+          
+          try:
+              response = requests.get(URL, headers=headers, timeout=15)
+              soup = BeautifulSoup(response.text, 'html.parser')
+              rows = soup.find_all('tr')
+              
+              container_found = "false"
+              container_val = "-"
+              
+              for row in rows:
+                  cells = row.find_all(['td', 'th'])
+                  if len(cells) >= 2:
+                      title = cells[0].text.strip()
+                      value = cells[1].text.strip()
+                      if "Container number" in title and value and value != "-":
+                          container_found = "true"
+                          container_val = value
+                          break
                           
-                          if "Container number" in title:
-                              if value and value != "-":
-                                  msg = f"ATRADOME KONTEINERIO NR! Numeris: {value}. Nuoroda: {URL}"
-                                  send_telegram(msg)
-                                  return
-                                  
-                  print("Konteinerio numerio dar nera. Laukiame...")
-              except Exception as e:
-                  print(f"Klaida: {e}")
+              # Isaugome rezultatus i Github aplinka
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write(f"found={container_found}\n")
+                  f.write(f"val={container_val}\n")
+                  
+          except Exception as e:
+              print(f"Klaida: {e}")
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write("found=false\n")
 
-          # TESTAS: Paprastas tekstas be jokio Markdown
-          send_telegram("TESTAS: Robotukas veikia ir sekimas pradetas sėkmingai!")
-          check_container()
+      - name: G-TESTAS (Atsius žinutę dabar patikrinimui)
+        run: |
+          curl -s -X POST "https://telegram.org" \
+          -d "chat_id=1778604935" \
+          -d "text=🧪 G-TESTAS: Ryšys su robotuku sėkmingai užmegztas! Sekimas veikia fone."
+
+      - name: Siusti pranesima jei atsirado konteineris
+        if: steps.tracker.outputs.found == 'true'
+        run: |
+          curl -s -X POST "https://telegram.org" \
+          -d "chat_id=1778604935" \
+          -d "text=🔔 ATRADOME KONTEINERIO NR! Numeris: ${{ steps.tracker.outputs.val }}. Nuoroda: https://shipbaltic.com"
