@@ -1,78 +1,16 @@
-name: Motociklo sekimas
+name: Telegram Test
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 * * * *'
 
 jobs:
-  run-tracker:
+  test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Atsisiusti koda
-        uses: actions/checkout@v4
-
-      - name: Paruosti Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Idiegti bibliotekas
-        run: pip install requests beautifulsoup4
-
-      - name: Patikrinti puslapi ir rasti konteineri
-        id: tracker
-        shell: python
+      - name: Siusti testine zinute
         run: |
-          import requests
-          from bs4 import BeautifulSoup
-          import os
-
-          URL = "https://shipbaltic.com"
-          headers = {'User-Agent': 'Mozilla/5.0'}
-          
-          try:
-              response = requests.get(URL, headers=headers, timeout=15)
-              soup = BeautifulSoup(response.text, 'html.parser')
-              rows = soup.find_all('tr')
-              
-              container_found = "false"
-              container_val = "-"
-              
-              for row in rows:
-                  cells = row.find_all(['td', 'th'])
-                  if len(cells) >= 2:
-                      title = cells.text.strip()
-                      value = cells.text.strip()
-                      if "Container number" in title and value and value != "-":
-                          container_found = "true"
-                          container_val = value
-                          break
-                          
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                  f.write(f"found={container_found}\n")
-                  f.write(f"val={container_val}\n")
-                  
-          except Exception as e:
-              print(f"Klaida: {e}")
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                  f.write("found=false\n")
-
-      - name: G-TESTAS (Tiesioginis siuntimas su tiksliu Tokenu)
-        run: |
-          # Testas su mažąja l raide (labiausiai tikėtina)
-          curl -s -X POST "https://telegram.org" \
-          -d "chat_id=1778604935" \
-          -d "text=🧪 G-TEST 1: Sėkmingai atkeliavo! Seklys veikia."
-
-          # Testas su didžiąja I raide (jei pirmas nesuveiktų)
-          curl -s -X POST "https://telegram.org" \
-          -d "chat_id=1778604935" \
-          -d "text=🧪 G-TEST 2: Sėkmingai atkeliavo! Seklys veikia."
-
-      - name: Siusti pranesima jei atsirado konteineris
-        if: steps.tracker.outputs.found == 'true'
-        run: |
-          curl -s -X POST "https://telegram.org" \
-          -d "chat_id=1778604935" \
-          -d "text=🔔 *ATRADOME KONTEINERIO NR!*\n\n📍 *Numeris:* ${{ steps.tracker.outputs.val }}\n🏍 *Nuoroda:* https://shipbaltic.com"
+          curl -s -X POST \
+          "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d text="✅ TESTAS: GitHub sėkmingai siunčia žinutes į Telegram!"
