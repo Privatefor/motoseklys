@@ -8,9 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Test
+      - name: Test Telegram
         run: |
-          curl -X POST \
-          "https://api.telegram.org/bot8947745976:AAFcrmvT4en1A3zJZBcMjgcbsfYklyELu4U/sendMessage" \
-          -d chat_id="1778604935" \
-          -d text="✅ TEST tiesiogiai be GitHub Secret"
+          curl -X POST "https://api.telegram.org/bot8947745976:AAFcrmvT4en1A3zJZBcMjgcbsfYklyELu4U/sendMessage" \
+          -d "chat_id=1778604935" \
+          -d "text=TESTAS IS GITHUB"
