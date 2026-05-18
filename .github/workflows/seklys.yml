@@ -67,4 +67,8 @@ jobs:
               except Exception as e:
                   print(f"Klaida: {e}")
 
+          # TESTINĖ ŽINUTĖ: išsiunčia pranešimą kaskart paleidus skriptą
+          send_telegram("🧪 *G-TEST:* Ryšys su GitHub veikia puikiai! Konteinerio numerio sekimas aktyvuotas.")
+
+          # Pagrindinis puslapio tikrinimas
           check_container()
