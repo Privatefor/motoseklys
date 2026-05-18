@@ -58,15 +58,25 @@ jobs:
               with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                   f.write("found=false\n")
 
-      - name: G-TESTAS (Zinute i viesu kanala)
+      - name: G-TESTAS (Bando siusti i abu pavadinimus)
         run: |
+          # 1 variantas: su didžiosiomis raidėmis
+          curl -s -X POST "https://telegram.org" \
+          -d "chat_id=@ManoMotociklas" \
+          -d "text=🧪 G-TESTAS: Sekimas sėkmingai paleistas (Didžiosios raidės)!"
+          
+          # 2 variantas: su mažosiomis raidėmis
           curl -s -X POST "https://telegram.org" \
           -d "chat_id=@manomotociklas" \
-          -d "text=🧪 G-TESTAS: Sekimas sėkmingai paleistas viešame kanale!"
+          -d "text=🧪 G-TESTAS: Sekimas sėkmingai paleistas (Mažosios raidės)!"
 
-      - name: Siusti pranesima i kanala jei atsirado konteineris
+      - name: Siusti pranesima jei atsirado konteineris
         if: steps.tracker.outputs.found == 'true'
         run: |
           curl -s -X POST "https://telegram.org" \
           -d "chat_id=@manomotociklas" \
+          -d "text=🔔 ATRADOME KONTEINERIO NR! Numeris: ${{ steps.tracker.outputs.val }}. Nuoroda: https://shipbaltic.com"
+          
+          curl -s -X POST "https://telegram.org" \
+          -d "chat_id=@ManoMotociklas" \
           -d "text=🔔 ATRADOME KONTEINERIO NR! Numeris: ${{ steps.tracker.outputs.val }}. Nuoroda: https://shipbaltic.com"
